@@ -338,19 +338,18 @@ fn update_buttons(scene: &mut PlayingScene, text: &mut TextRenderer) {
     let y = top_bar.bbox.y();
     let w = top_bar.bbox.w();
 
+    let mut row = nuon::layout::RowLayout::new(nuon::Rect::from_size(nuon::Size::new(w, 30.0)));
+
     top_bar
         .back_button
-        .set_pos((0.0, y))
+        .set_pos((row.push_start(30.0), y))
         .set_hovered(matches!(top_bar.hovered, Element::BackButton))
         .set_icon(left_arrow_icon())
         .draw(quad_pipeline, text);
 
-    let mut x = w;
-
-    x -= 30.0;
     top_bar
         .settings_button
-        .set_pos((x, y))
+        .set_pos((row.push_end(30.0), y))
         .set_hovered(matches!(top_bar.hovered, Element::SettingsButton))
         .set_icon(if top_bar.settings_active {
             gear_fill_icon()
@@ -359,18 +358,16 @@ fn update_buttons(scene: &mut PlayingScene, text: &mut TextRenderer) {
         })
         .draw(quad_pipeline, text);
 
-    x -= 30.0;
     top_bar
         .loop_button
-        .set_pos((x, y))
+        .set_pos((row.push_end(30.0), y))
         .set_hovered(matches!(top_bar.hovered, Element::RepeatButton))
         .set_icon(repeat_icon())
         .draw(quad_pipeline, text);
 
-    x -= 30.0;
     top_bar
         .play_button
-        .set_pos((x, y))
+        .set_pos((row.push_end(30.0), y))
         .set_hovered(matches!(top_bar.hovered, Element::PlayButton))
         .set_icon(if scene.player.is_paused() {
             play_icon()
