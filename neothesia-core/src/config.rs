@@ -111,7 +111,7 @@ impl Drop for Config {
 }
 
 fn default_piano_range() -> (u8, u8) {
-    (21, 108)
+    (48, 71)
 }
 
 fn default_speed_multiplier() -> f32 {

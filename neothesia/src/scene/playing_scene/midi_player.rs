@@ -3,6 +3,7 @@ use midi_file::midly::{num::u4, MidiMessage};
 use crate::{
     output_manager::OutputConnection,
     song::{PlayerConfig, Song},
+    context::Context
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -54,7 +55,7 @@ impl MidiPlayer {
 
         events.iter().for_each(|event| {
             let config = &self.song.config.tracks[event.track_id];
-
+            
             match config.player {
                 PlayerConfig::Auto => {
                     self.output
@@ -325,9 +326,10 @@ impl PlayAlong {
 
                 self.required_notes.insert(note_id, NotePress { timestamp });
             }
-
+            
             self.in_proggres_file_notes.insert(note_id);
         } else {
+            
             self.in_proggres_file_notes.remove(&note_id);
         }
     }
@@ -341,9 +343,25 @@ impl PlayAlong {
             MidiEventSource::User => self.user_press_key(note_id, active),
             MidiEventSource::File => self.file_press_key(note_id, active),
         }
+        
+        let source = match src {
+            MidiEventSource::User => "user",
+            MidiEventSource::File => "file",
+        };
+
+        Context::send_to_api(serde_json::json!({
+            "source": source,
+            "active": active,
+            "key": note_id.to_string(),
+        }));
     }
 
     pub fn midi_event(&mut self, source: MidiEventSource, message: &MidiMessage) {
+        
+        match source {
+            MidiEventSource::User => println!("user: {:?}", message),
+            MidiEventSource::File => println!("file: {:?}", message),
+        }
         match message {
             MidiMessage::NoteOn { key, .. } => self.press_key(source, key.as_int(), true),
             MidiMessage::NoteOff { key, .. } => self.press_key(source, key.as_int(), false),

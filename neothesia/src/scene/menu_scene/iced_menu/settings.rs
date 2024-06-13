@@ -16,6 +16,8 @@ use super::{
     theme, Data, InputDescriptor, Message,
 };
 
+const MIN_RANGE: u8 = 22;
+
 #[derive(Debug, Clone)]
 pub enum RangeUpdateKind {
     Add,
@@ -86,7 +88,7 @@ impl Page for SettingsPage {
             Event::RangeStart(kind) => match kind {
                 RangeUpdateKind::Add => {
                     let v = (ctx.config.piano_range().start() + 1).min(127);
-                    if v + 24 < *ctx.config.piano_range().end() {
+                    if v + MIN_RANGE < *ctx.config.piano_range().end() {
                         ctx.config.piano_range.0 = v;
                     }
                 }
@@ -100,7 +102,7 @@ impl Page for SettingsPage {
                 }
                 RangeUpdateKind::Sub => {
                     let v = ctx.config.piano_range().end().saturating_sub(1);
-                    if *ctx.config.piano_range().start() + 24 < v {
+                    if *ctx.config.piano_range().start() + MIN_RANGE < v {
                         ctx.config.piano_range.1 = v;
                     }
                 }

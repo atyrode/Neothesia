@@ -12,6 +12,10 @@ use winit::event_loop::EventLoopProxy;
 use crate::iced_utils::IcedManager;
 use winit::window::Window;
 
+use reqwest::Client;
+use tokio::runtime::Runtime;
+use std::{error::Error, fmt};
+
 pub struct Context {
     pub window: Arc<Window>,
     pub iced_manager: IcedManager,
@@ -109,5 +113,27 @@ impl Context {
             ),
             self.window_state.scale_factor,
         );
+    }
+
+    /// Asynchronous function to send the message to the FastAPI server
+    async fn send_to_server(payload: serde_json::Value) -> Result<(), Box<dyn Error>> {
+        let client = Client::new();
+        client.post("http://localhost:8000/")
+            .json(&payload)
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
+    pub fn send_to_api(payload: serde_json::Value) {
+        // Create a runtime to execute the async block
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            // Send the message to the FastAPI server
+            if let Err(e) = Context::send_to_server(payload).await {
+                eprintln!("Failed to send message to server: {}", e);
+            }
+        });
     }
 }

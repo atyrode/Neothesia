@@ -1,4 +1,6 @@
 /target
 **/*.rs.bk
 /settings.ron
-/out
+/outvenv
+__pycache__
+venv/
