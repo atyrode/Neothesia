@@ -58,6 +58,10 @@ impl Page for SettingsPage {
                     .set_output(if let OutputDescriptor::DummyOutput = output {
                         None
                     } else {
+                        Context::send_to_api(serde_json::json!({
+                            "source": "system",
+                            "device_name": Some(output.to_string())
+                        }));
                         Some(output.to_string())
                     });
                 data.selected_output = Some(output);

@@ -1,8 +1,11 @@
-from fastapi import FastAPI, Request
-import uvicorn
 import os
+import asyncio
 
-app = FastAPI()
+import uvicorn
+from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+
+from sysex import Keyboard
 
 BLACK = "30"
 RED = "31"
@@ -14,7 +17,7 @@ CYAN = "36"
 WHITE = "37"
 
 term_width = os.get_terminal_size().columns
-
+    
 def cprint(message, color_code, prefix=None, top: bool = False, bottom: bool = False, sep: str = "=", end: str = "\n"):
     if top:
         print(f"{sep * term_width}")
@@ -45,6 +48,7 @@ def pressed(note: int):
     color = compute_note_color(note)
     cprint("PRESSED :", BLUE, end="")
     cprint(f" {color}", WHITE)
+    controller["keyboard"].set_brightness(10)
 
 def released(note: int):
     color = compute_note_color(note)
@@ -54,12 +58,18 @@ def released(note: int):
 def midi(payload: dict):
 
     source = payload["source"]
-    active = payload["active"]
-    key = int(payload["key"])
-    
-    controller[source][active](key)
+
+    if source == "system":
+        if "device_name" in payload:
+            pass
+    else:
+        active = payload["active"]
+        key = int(payload["key"])
+        
+        controller[source][active](key)
 
 controller = {
+    "keyboard": None,
     "file": {
         True: play,
         False: stop,
@@ -69,6 +79,13 @@ controller = {
         False: released,
     },
 }
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    controller["keyboard"] = Keyboard("LUMI Keys Block O8N0 Bluetooth")
+    yield
+    
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/")
 async def receive_message(request: Request):

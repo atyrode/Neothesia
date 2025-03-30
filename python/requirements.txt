@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+httpx
+mido
+python-rtmidi
